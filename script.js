@@ -1,28 +1,42 @@
-var map = L.map('map').setView([51.505, -0.09], 13);
+var map = L.map('map').setView([39, -95], 5);
 
-L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}{r}.{ext}', {
-	attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-	subdomains: 'abcd',
-	minZoom: 0,
-	maxZoom: 20,
-	ext: 'png'
+L.tileLayer('https://a.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	attribution: 'Map tiles by Stamen Design, under CC BY 3.0.',
+	maxZoom: 18
 }).addTo(map);
 
-var marker = L.marker([51.5, -0.09]).addTo(map);
+$.getJSON("https://gist.githubusercontent.com/erincaughey/2f221501645757e28b715c4063e87595/raw/a90be1b434b1a8cdf71c2abc3373ca63987e2d23/nps-geo-boundary.json",function(data){
+    L.geoJSON(data, {
+		onEachFeature: function (feature, layer) {
+			layer.bindPopup('<h3>'+feature.properties.UNIT_NAME+'</h3>');
+		},
+		filter: nationalParkFilter,
+		style: parkStyle
+	}).addTo(map);
+    function nationalParkFilter(feature) {
+      return feature.properties.UNIT_TYPE === "National Park"
+    }
+});
 
-var circle = L.circle([51.508, -0.11], {
-    color: 'green',
-    fillColor: '#f03',
-    fillOpacity: 0.5,
-    radius: 500
-}).addTo(map);
+var parkStyle = {
+    "color": "#228B22",
+    "weight": 3
+};
 
-var polygon = L.polygon([
-    [51.509, -0.08],
-    [51.503, -0.06],
-    [51.51, -0.047]
-]).addTo(map);
+$.getJSON("https://raw.githubusercontent.com/robertocoral/GIS5091-project1-app1/main/us-airports.geojson",function(data){
+    L.geoJSON(data, {
+		onEachFeature: function (feature, layer) {
+			layer.bindPopup('<h3>'+feature.properties.name+'</h3>');
+		},
+		pointToLayer: function(point, latlng) {
+			return L.marker(latlng, { icon: airportIcon})
+		}
+	}).addTo(map);
+});
 
-marker.bindPopup("<b>Hello world!</b><br>I am a popup.").openPopup();
-circle.bindPopup("I am a circle.");
-polygon.bindPopup("I am a polygon.");
+var airportIcon = new L.Icon({
+     iconSize: [27, 27],
+     iconAnchor: [13, 27],
+     popupAnchor:  [1, -24],
+     iconUrl: 'https://cdn2.iconfinder.com/data/icons/rental-icon/240/airport-512.png'
+ });
